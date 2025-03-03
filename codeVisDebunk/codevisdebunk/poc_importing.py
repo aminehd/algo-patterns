@@ -1,4 +1,7 @@
-from poc_debug_viz import ColorPdb
+#!/usr/bin/env python
+# codeVisDebunk/codevisdebunk/run_viz.py
+
+from codevisdebunk.poc_debug_viz import ColorPdb
 import heapq
 from typing import List
 
@@ -15,154 +18,102 @@ pdb = ColorPdb()
 
 def print_state(nums, left, right, message, **kwargs):
     """
-    Print the current state of the sliding window with emoji pointers
-    aligned below the elements.
-    
-
-    Args:
-        nums: The binary array
-        left: Left pointer position
-        right: Right pointer position
-        **kwargs: Additional state variables to display
+    Print the current state of the two pointers with ASCII art visualization.
     """
-
     pdb.clean_logger()
-    # Create a copy of the array as strings for display
-    display = [str(num) for num in nums]
-    
-    pdb.logger(message)
-    # Print the array elements
-    pdb.logger(' '.join(display))
-    # Create pointer display line
-    pointers = [' ' for _ in range(len(nums))]
-    if 0 <= left < len(nums):
-        
-        
-        pointers[left] = '👆'
-    if 0 <= right < len(nums):
-        pointers[right] = '👆'
-    
-    # Print the pointers line
-    pdb.logger(' '.join(pointers))
-    
-    # Print additional state variables
-    state_info = []
-    for key, value in kwargs.items():
-        state_info.append(f"{key}: {value}")
-    
-    if state_info:
-        pdb.logger(', '.join(state_info))
 
-    pdb.logger('\n')
+    # Create top border with message
+    pdb.logger("┌───────────────────────────────────────────────────┐")
+    pdb.logger(f"│ {message}")
 
-for i in range(61, 87):
+    # Print array with visual indicators
+    array_str = "│ "
+    for i, num in enumerate(nums):
+        if i == left and i == right:
+            array_str += f"[{num}]"
+        elif i == left:
+            array_str += f"🚪{num}"
+        elif i == right:
+            array_str += f"{num}🚪"
+        elif i > left and i < right:
+            array_str += f" {num} "
+        else:
+            array_str += f" {num} "
+    array_str += " "
+    pdb.logger(array_str)
+
+    # Print pointer indicators and search space
+    pointer_str = "│ "
+    for i in range(len(nums)):
+        num_width = len(str(nums[i]))
+        if i == left and i == right:
+            pointer_str += " ↕ " + " " * (num_width - 1)
+        elif i == left:
+            pointer_str += "🚪↑ " + " " * (num_width - 1)
+        elif i == right:
+            pointer_str += "↑🚪" + " " * (num_width - 1)
+        elif i > left and i < right:
+            pointer_str += " · " + " " * (num_width - 1)  # Show search space
+        else:
+            pointer_str += "   " + " " * (num_width - 1)
+    pointer_str += " "
+    pdb.logger(pointer_str)
+
+    # Print current sum visualization
+    if left != right:
+        sum_str = "│ "
+        curr_sum = nums[left] + nums[right]
+        sum_str += f"{nums[left]} + {nums[right]} = {curr_sum}"
+        if "target" in kwargs:
+            target = kwargs["target"]
+            if curr_sum < target:
+                sum_str += f" (too small, need {target-curr_sum} more)"
+            elif curr_sum > target:
+                sum_str += f" (too large, need {curr_sum-target} less)"
+        sum_str += " " * (len(nums) * 4 - len(sum_str) + 1) + "│"
+        pdb.logger(sum_str)
+
+    # Print state variables
+    if kwargs:
+        state_str = "│ "
+        state_items = [f"{k}={v}" for k,v in kwargs.items()]
+        state_str += ", ".join(state_items)
+        state_str += " " * (len(nums) * 4 + 3 - len(state_str) + 1) + "│"
+        pdb.logger(state_str)
+
+    # Print bottom border    
+    pdb.logger("└───────────────────────────────────────────────────┘")
+    pdb.logger("")
+
+
+for i in range(92, 104):
     pdb.set_break(__file__, i)
 #     Given a string s that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.
 class Solution:
-    
-    
-    def longestOnes(self, nums: List[int], k: int) -> int:
-        pdb.set_trace(start_line=61, end_line=86)
-        left = 0
-        max_length = 0
-        zero_count = 0
-        
-        for right in range(len(nums)):
-            if nums[right] == 0:
-                zero_count += 1
-            
-            print_state(nums, left, right, zero_count=zero_count, k=k, max_length=max_length, message="Started expanding window")
-            while zero_count > k:
-                if nums[left] == 0:
-                    zero_count -= 1
-                left += 1
-                print_state(nums, left, right, zero_count=zero_count, k=k, max_length=max_length, message="Shrinking window")
-            
-            # Update maximum length
-            current_length = right - left + 1
-            max_length = max(max_length, current_length)
-            
-        return max_length
-
-
-
-sol = Solution()
-pdb.logger(sol.longestOnes([1,1,1,0,0,0,1,1,1,1,0], 2))
-
-
-
-
-class Solution:
-    def longestOnes(self, nums: List[int], k: int) -> int:
-        pdb.logger("┌─────────────────────────────────────────────────────")
-        pdb.logger("│ 📊 Input array: " +  str(nums))
-        pdb.logger("│ 🔄 Allowed flips (k):" + str(k) )
-        pdb.logger("└─────────────────────────────────────────────────────")
-        # Draw the input array as a tree-like structure
-        pdb.logger("    " + " ".join([str(n) for n in nums]))
-        pdb.logger("    " + " ".join([f"↓" for _ in nums]))
-        indices = "    " + " ".join([str(i) for i in range(len(nums))])
-        pdb.logger(indices)
-        pdb.logger("\n")
-        left = 0
-        max_seen = 0
-        
-        pdb.set_trace(context=20)
-        for right in range(len(nums)):
-            # Decrease k when we encounter a 0
-            if nums[right] == 0:
-                k -= 1
-            pdb.clean_logger()
-            pdb.logger(f"┌────────────────────────────────────────────────")
-            pdb.logger(f"│ 🔄 ITERATION #{right+1}")
-            pdb.logger(f"│ 👉 Window: {nums[left:right+1]}")
-            pdb.logger(f"│ 📍 Left: {left}, Right: {right}")
-            pdb.logger(f"│ 📏 Current window size: {right - left + 1}")
-            pdb.logger(f"│ 🏆 Max window so far: {max_seen}")
-            
-            # Shrink window from left when we have used too many flips
-            if k < 0:
-                pdb.logger(f"│ ⚠️ Too many zeros! Need to shrink window")
-                pdb.logger(f"│ 🔍 Entering while loop to adjust left pointer")
-                
-                pdb.logger(f"│ ┌────────────────────────────────────────")
-                level = 0
-                
-                while left <= right and k < 0:
-                    pdb.logger(f"│ │ {'  ' * level}┌────────────────────────────")
-                    
-                    # If we remove a 0 from window, we get a flip back
-                    if nums[left] == 0:
-                        k += 1
-                        pdb.logger(f"│ │ {'  ' * level}│ 🔄 Removed a zero, k: {k-1} → {k}")
-                    else:
-                        pdb.logger(f"│ │ {'  ' * level}│ ⏩ Removed a one, k unchanged: {k}")
-                        
-                    left += 1
-                    pdb.logger(f"│ │ {'  ' * level}│ 👈 Move left: {left-1} → {left}")
-                    pdb.logger(f"│ │ {'  ' * level}│ 🔲 New window: {nums[left:right+1]}")
-                    pdb.logger(f"│ │ {'  ' * level}└────────────────────────────")
-                    level += 1
-                    
-                pdb.logger(f"│ └────────────────────────────────────────")
-                pdb.logger(f"│ 🔍 Exited while loop, window is now valid")
+    def twoSum(self, nums, target):
+        pdb.set_trace(start_line=92, end_line=104)
+        nums.sort()
+        l, r = 0, len(nums) - 1
+        while l < r:
+            print_state(nums, l, r, target=target, message="Inward traversal")
+            if nums[l] + nums[r] == target:
+                return [l, r]
+            elif nums[l] + nums[r] < target:
+                l += 1
             else:
-                pdb.logger(f"│ ✅ Window is valid (k ≥ 0)")
-                
-            # Update the maximum valid window seen so far
-            max_seen = max(max_seen, right - left + 1)
-            pdb.logger(f"│ 📊 AFTER PROCESSING: Window {nums[left:right+1]}")
-            pdb.logger(f"│ 📍 Left: {left}, Right: {right}, k: {k}")
-            pdb.logger(f"│ 🏆 Max window updated: {max_seen}")
-            pdb.logger(f"└────────────────────────────────────────────────\n")
-            
-        # Final result
-        pdb.logger("┌─────────────────────────────────────────────────────")
-        pdb.logger(f"│ 🎯 FINAL RESULT: {max_seen}")
-        pdb.logger("└─────────────────────────────────────────────────────")
-        
-        return max_seen
-    
-        
+                r -= 1
+        return []
+
+
+# to get it running dont forgot the         pdb.set_trace(start_line=92, end_line=104) , and cd  codeVisDebunk and run `poetry run algo-viz`
 sol = Solution()
-pdb.logger(sol.longestOnes([1,1,1,0,0,0,1,1,1,1,0], 2))
+nums = [1, 4, 6, 8, 9, 11, 15, 17, 20, 25, 30, 50]
+target = 23
+pdb.logger(sol.twoSum(nums, target))
+# create a good example with lots of l and r changeing
+
+
+
+
+
+

@@ -1,4 +1,3 @@
-        
 from typing import List, Tuple, Dict, Optional
 import heapq 
 import time, os, sys, re
@@ -59,81 +58,37 @@ class ColorPdb(Pdb):  # or just TerminalPdb
         
         # Restore original trace
         sys.settrace(old_trace)
+        # Clear the file first
         with open(self.external_msgs_file, 'w') as f:
             f.write('')
-            
+        
+        # Calculate max width needed for code section
+        code_width = max(len(line) for line in self.code_stack) if self.code_stack else 0
+        
         with open(self.external_msgs_file, 'a') as f:
-            for msg in self.code_stack:
-                f.write(str( msg ).rstrip() + '\n')
-            
+            # Write code and messages side by side
             f.write('```python\n')
-            for msg in self.external_msgs:
-                f.write(str( msg ) + '\n')
-                
+            
+            # Calculate number of lines needed for vertical centering
+            max_lines = max(len(self.code_stack), len(self.external_msgs))
+            msg_start = (max_lines - len(self.external_msgs)) // 2
+            
+            # Add empty lines before messages for centering
+            code_lines = self.code_stack + [''] * (max_lines - len(self.code_stack))
+            msg_lines = [''] * msg_start + self.external_msgs + [''] * (max_lines - len(self.external_msgs) - msg_start)
+            
+            for code, msg in zip(code_lines, msg_lines):
+                # Pad code section to align messages
+                padded_code = str(code).rstrip().ljust(code_width)
+                if msg:
+                    f.write(f"{padded_code} │ {msg}\n")
+                else:
+                    f.write(f"{padded_code}\n")
+                    
             f.write('```\n')
         return result
 
-    def do_n(self, arg):
-        """Enhanced next command that stays in user code only."""
-        os.system('cls' if os.name == 'nt' else 'clear')
-        
-        def is_library_file(filename):
-            """Check if a file is a library file rather than user code."""
-            # Avoid lib, site-packages, and Python's own files
-            return ('lib' in filename or 
-                    'site-packages' in filename or 
-                    'python' in filename.lower() or
-                    filename.startswith('/usr'))
-
-        current_frame = self.curframe
-        frame = self.curframe
-
-        # while frame:
-        #     next_line = frame.f_code.co_firstlineno + frame.f_lineno
-        #     with open(frame.f_code.co_filename, 'r') as f:
-        #         lines = f.readlines()
-        #         if next_line < len(lines) and 'print' in lines[next_line - 1]:
-        #             return self.do_n(arg)  # Skip print lines recursively
-        #     break 
-        # If we're in a library file, keep using continue until we get back to user code
-        while current_frame and is_library_file(current_frame.f_code.co_filename):
-            super().do_c(arg)  # Continue execution
-            current_frame = self.curframe
-            
-        # Get current indentation level
-        with open(current_frame.f_code.co_filename, 'r') as f:
-            lines = f.readlines()
-            current_line = lines[current_frame.f_lineno - 1]
-            current_indent = len(current_line) - len(current_line.lstrip())
-        
-        result = super().do_n(arg)
-        with open(self.log_file, 'w') as f:
-            f.write('')
-        with open(self.log_file, 'a') as f:
-            for msg in self.msgs:
-                f.write(msg + '\n')
-        # After executing, check if we need to keep stepping
-        # Execute next
-        next_frame = self.curframe
-        if next_frame:
-            # If we've entered a function or changed files, return from it
-            if 'FB_Study' in next_frame.f_code.co_filename : ####COME BACK TO THIS
-                return self.do_r(arg)
-            
-            # Check if indentation has increased (entered a new block)
-            with open(next_frame.f_code.co_filename, 'r') as f:
-                lines = f.readlines()
-                if next_frame.f_lineno <= len(lines):
-                    next_line = lines[next_frame.f_lineno - 1]
-                    next_indent = len(next_line) - len(next_line.lstrip())
-                    if next_indent > current_indent:
-                        return self.do_r(arg)
-        
-        # Write messages to log file
-        
-        
-        return result
-        
+ 
 
  
     def set_trace(self,  frame=None, start_line = 0, end_line = 100,  context=200):
@@ -160,8 +115,6 @@ class ColorPdb(Pdb):  # or just TerminalPdb
         with open(filename, 'r') as f:
             lines = f.readlines()
         
-        # start = max(0, lineno - self.context)
-        # end = min(len(lines), lineno + self.context)
         start = self.start_line
         end =  self.end_line
         def get_indentation(line):
@@ -219,6 +172,9 @@ class ColorPdb(Pdb):  # or just TerminalPdb
                     context.append(f'{marker} {line_num} {Fore.LIGHTBLACK_EX}{colored_line}{Style.RESET_ALL}')
                 if i + 1 == lineno:
                     self.code_stack.append(f'--> {i+1:4d} {line}\n')
+                    # self.code_stack.append(f'🛑> {i+1:4d} {line}\n')
+                    # self.code_stack.append(f'🛑 {i+1:4d} {line}\n')
+
                 else:
                     self.code_stack.append(f'    {i+1:4d} {line}\n') 
         self.code_stack.append('```\n')
@@ -229,50 +185,5 @@ class ColorPdb(Pdb):  # or just TerminalPdb
         self.external_msgs.append(msg)
     def clean_logger(self):
         self.external_msgs = []
-
-    def do_anim(self, arg):
-        os.system('cls' if os.name == 'nt' else 'clear')  # Clear terminal directly
-        frame = self.curframe
-        while frame:
-            filename = frame.f_code.co_filename
-            lineno = frame.f_lineno
-            function = frame.f_code.co_name
-            print(f"{Fore.CYAN}File {filename}, line {lineno}, in {function}{Style.RESET_ALL}")
-            time.sleep(0.5)  # Animation delay
-            frame = frame.f_back
-
-    def default(self, line):
-        # Maintain colors for all commands
-        print(f"{Fore.GREEN}Executing: {line}{Style.RESET_ALL}")
-        return super().default(line)
-
-# Usage:
-
-
-pdb = ColorPdb()
-
-
-
-a = 10
-# pdb.set_trace() ### use this instead of Break point
-pdb.logger('msgs')
-b = a * 100
-
-    
-# /Users/aminehdadsetan/WorkSpace/InterViewPrep/FB_Raw/bin/python /Users/aminehdadsetan/WorkSpace/InterViewPrep/FB_Study/2025_02_08_fb_study.py
-# # use ##! to add variables to print
-
-
-for i in range(492, 5020):
-    pdb.set_break(__file__, i)
-    
-# class ... , type c in cosole debugger and see logs in debug_log.py, later you can push into
-# pdb.push_pictures() and see the whole stack in pictrures.py
-
-
-
-
-
-
 
 
