@@ -129,3 +129,25 @@ print(image.transform())
 def transform(input: list[list[int]]) -> list[list[int]]:
     image = Image(input)
     return image.transform()
+
+    
+# I first defined class Image, that takes image of type list[list[int]] to initialize. 
+# Then I prompted "to defnie a function that 9X3 input array to 3x3 blocks that are vertically stacked""
+# it gave me this block of code:
+
+#         for j in range(0, cols, 3):
+#             block = []
+#             for i in range(rows):
+#                 block.append(self.image[i][j:j+3])
+#             result.append(block)
+#         return result
+# Then I decided to implement a transform fucntion in Image class that uses break_into_3_X_3.
+# So I prompted "loop through each block and use match_pattern to replace the block with the mathced numebr"
+#         result = []
+#         for block in blocks:
+#             pattern = self.match_pattern(block)
+#             # replace the block with the pattern
+#             new_block = [[pattern for _ in range(3)] for _ in range(3)]
+#             result.append(new_block)
+            
+#         return result

@@ -18,101 +18,102 @@ pdb = ColorPdb()
 
 def print_state(nums, left, right, message, **kwargs):
     """
-    Print the current state of the two pointers with ASCII art visualization.
+    Print the current state of the two pointers with enhanced ASCII art visualization.
     """
     pdb.clean_logger()
 
     # Create top border with message
     pdb.logger("┌───────────────────────────────────────────────────┐")
     pdb.logger(f"│ {message}")
+    pdb.logger("│")
 
-    # Print array with visual indicators
-    array_str = "│ "
+    # Print input array with indices for reference
+    index_str = "│ Indices: "
+    for i in range(len(nums)):
+        index_str += f"{i:^2} "
+    pdb.logger(index_str)
+    
+    # Print the original input array
+    input_str = "│ Input:   "
+    for num in nums:
+        input_str += f"{num:^2} "
+    pdb.logger(input_str)
+    pdb.logger("│")
+
+    # Print current array state with visual indicators
+    pdb.logger("│ Current Array State:")
+    array_str = "│ " + 8 * " "
     for i, num in enumerate(nums):
         if i == left and i == right:
             array_str += f"[{num}]"
         elif i == left:
-            array_str += f"🚪{num}"
+            array_str += f"[{num} "
         elif i == right:
-            array_str += f"{num}🚪"
+            array_str += f" {num}]"
         elif i > left and i < right:
             array_str += f" {num} "
         else:
             array_str += f" {num} "
-    array_str += " "
+    array_str += " │"
     pdb.logger(array_str)
 
-    # Print pointer indicators and search space
-    pointer_str = "│ "
+    # Print pointer movement visualization
+    pdb.logger("│")
+    pdb.logger("│ Pointer Positions:")
+    pointer_str = "│ " + 8 * " "
     for i in range(len(nums)):
-        num_width = len(str(nums[i]))
         if i == left and i == right:
-            pointer_str += " ↕ " + " " * (num_width - 1)
+            pointer_str += "L R"
         elif i == left:
-            pointer_str += "🚪↑ " + " " * (num_width - 1)
+            pointer_str += "L  "
         elif i == right:
-            pointer_str += "↑🚪" + " " * (num_width - 1)
-        elif i > left and i < right:
-            pointer_str += " · " + " " * (num_width - 1)  # Show search space
+            pointer_str += "  R"
         else:
-            pointer_str += "   " + " " * (num_width - 1)
-    pointer_str += " "
+            pointer_str += "   "
     pdb.logger(pointer_str)
 
-    # Print current sum visualization
-    if left != right:
-        sum_str = "│ "
-        curr_sum = nums[left] + nums[right]
-        sum_str += f"{nums[left]} + {nums[right]} = {curr_sum}"
-        if "target" in kwargs:
-            target = kwargs["target"]
-            if curr_sum < target:
-                sum_str += f" (too small, need {target-curr_sum} more)"
-            elif curr_sum > target:
-                sum_str += f" (too large, need {curr_sum-target} less)"
-        sum_str += " " * (len(nums) * 4 - len(sum_str) + 1) + "│"
-        pdb.logger(sum_str)
+    # Print pointer values
+    pdb.logger("│")
+    pdb.logger(f"│ Left pointer (L) at index {left}, value: {nums[left]}")
+    pdb.logger(f"│ Right pointer (R) at index {right}, value: {nums[right]}")
 
     # Print state variables
     if kwargs:
-        state_str = "│ "
-        state_items = [f"{k}={v}" for k,v in kwargs.items()]
-        state_str += ", ".join(state_items)
-        state_str += " " * (len(nums) * 4 + 3 - len(state_str) + 1) + "│"
-        pdb.logger(state_str)
+        pdb.logger("│")
+        pdb.logger("│ Additional State Information:")
+        for k, v in kwargs.items():
+            pdb.logger(f"│ {k} = {v}")
 
     # Print bottom border    
     pdb.logger("└───────────────────────────────────────────────────┘")
     pdb.logger("")
 
+            
+        
 
-for i in range(92, 106):
+
+for i in range(98, 111):
     pdb.set_break(__file__, i)
 #     Given a string s that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.
 class Solution:
-    def twoSum(self, nums, target):
-        pdb.set_trace(start_line=92, end_line=106, variables=[ "target", "l", "r"])
-        nums.sort()
-        l, r = 0, len(nums) - 1
-        while l < r:
-            print_state(nums, l, r, target=target, message="Inward traversal")
-            if nums[l] + nums[r] == target:
-                return [l, r]
-            elif nums[l] + nums[r] < target:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        pdb.set_trace(start_line=98, end_line=111)
+        l, r = 0, 0
+        for r in range(len(nums)):
+            print_state(nums, l, r, message="Started expanding window")
+            if nums[r] != nums[l]:
                 l += 1
-            else:
-                r -= 1
-        return []
+                nums[l] = nums[r]
+        end = l + 1
+        while end < len(nums):
+            nums[end] = '_'
+            end += 1
+        return l + 1
 
 
 # to get it running dont forgot the         pdb.set_trace(start_line=92, end_line=104) , and cd  codeVisDebunk and run `poetry run algo-viz`
 sol = Solution()
-nums = [1, 4, 6, 8, 9, 11, 15, 17, 20, 25, 30, 50]
-target = 23
-pdb.logger(sol.twoSum(nums, target))
-# create a good example with lots of l and r changeing
-
-
+sol.removeDuplicates([1,1,2,2,3,3,4,4,5,5])
 
 
 

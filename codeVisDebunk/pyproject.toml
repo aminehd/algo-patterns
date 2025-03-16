@@ -6,7 +6,7 @@ authors = ["Amineh Dadsetan <amineh.dadsetan@gmail.com>"]
 
 
 [tool.poetry.scripts]
-algo-viz = "codevisdebunk.poc_importing:main"
+algo-viz = "codevisdebunk.2025_03_09_importing:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
