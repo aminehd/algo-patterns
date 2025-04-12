@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "83:83"
+    volumes:
+      - ./backend:/app
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true 
