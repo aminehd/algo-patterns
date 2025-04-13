@@ -13,14 +13,18 @@ export default defineConfig({
       usePolling: true
     },
     proxy: {
-      '/api': {
-        target: 'http://backend:3000',
-        changeOrigin: true
-      }
+      // Proxy requests to /debug to your actual API server
+      '/debug': {
+          target: 'http://backend:83/',
+          changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
     },
     allowedHosts: [
       'aminehdadsetan.net',
-      'www.aminehdadsetan.net'
+      'www.aminehdadsetan.net',
+      'localhost',
+      '127.0.0.1',
     ]
   }
 })

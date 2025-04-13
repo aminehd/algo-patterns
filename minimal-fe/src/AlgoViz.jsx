@@ -38,7 +38,11 @@ const AlgoViz = () => {
     const fetchDebugData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://174.138.45.200:83/debug/binary-search');
+        // This will work so if the proxy not worked and broke, use this 
+        // const response = await fetch('http://174.138.45.200:83/debug/binary-search');
+        // in the vite config, we have a proxy to the backend:83 for debug path, in the proxy manager we have 
+        // a /debug path to rout to 83
+        const response = await fetch('/debug/binary-search');
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
         }
