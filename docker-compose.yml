@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.simple
+    ports:
+      - "83:83"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    container_name: algo-patterns-backend
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./minimal-fe
+      dockerfile: Dockerfile.dev
+    ports:
+      - "84:3000"
+    volumes:
+      - ./minimal-fe:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_BACKEND_URL=http://backend:83
+    restart: unless-stopped
+    container_name: algo-patterns-frontend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge 
