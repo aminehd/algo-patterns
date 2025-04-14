@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import BinarySearchViz from './BinaryViz'
 // Import CodeVisualization component to make it available for BinaryViz
 import CodeVisualization from './CodeVisualization'
-
+import { renderControls } from './Utils';
 const AlgoViz = () => {
   // Sample data for visualization
   const madeupdata = [
@@ -125,13 +125,23 @@ const AlgoViz = () => {
       }
     }
   }, [currentFrameIndex, debugData]);
-
+   
+  // debugData is null initially before the fetch completes
+  // Using optional chaining to safely access properties
+  if (!debugData) return <div>No debug data available</div>;
+  const frame = debugData?.debug_frames?.[currentFrameIndex];
   return (
     <div>
-      {/* Pass CodeVisualization as a prop to BinarySearchViz */}
-      <BinarySearchViz CodeVisualization={CodeVisualization} />
-      {/* <ColorfulGrid />
-      <MinimalistPixels /> */}
+        <h2>Binary Search Visualization</h2>
+        <div className="frame-info">
+          <p>Function: {frame.func_name}</p>
+          <p>Line: {frame.current_line}</p>
+          <p>Frame: {currentFrameIndex + 1} of {debugData.debug_frames.length}</p>
+        </div>
+
+      <CodeVisualization frame={frame} />
+      {renderControls(handlePrevFrame, handleNextFrame, isAutoPlaying, currentFrameIndex, debugData, isAnimating, toggleAutoPlay)}
+      <BinarySearchViz frame={frame} />
     </div>
   )
 }
