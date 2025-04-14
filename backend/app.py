@@ -90,7 +90,7 @@ def read_root():
 def debug_binary_search(target: int = 42):
     """Debug a binary search algorithm with visualization data"""
     # Create a sorted array for binary search
-    arr = list(range(0, 100, 2))  # [0, 2, 4, ..., 98]
+    arr = list(range(0, 30, 2))  # [0, 2, 4, ..., 98]
     
     # Run the debugger on binary search
     _, debug_info = executor.execute(binary_search, arr, target)
