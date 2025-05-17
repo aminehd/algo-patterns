@@ -86,13 +86,79 @@ executor = DebugExecutor()
 def read_root():
     return {"message": "Algorithm Debugger API is running"}
 
-@app.get("/debug/binary-search", response_model=DebugResponse)
-def debug_binary_search(target: int = 42):
+@app.get("/debug/any-algorithm", response_model=DebugResponse)
+def debug_any_algorithm(target: int = 42,
+                        nums: str = "2, 7, 11, 15, 3, 6, 8, 1"):
     """Debug a binary search algorithm with visualization data"""
     # Create a sorted array for binary search
-    arr = list(range(0, 30, 2))  # [0, 2, 4, ..., 98]
-    
+    arr = [int(num) for num in nums.split(",")]
+    print(arr)
     # Run the debugger on binary search
+    code = """
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+            
+    return -1
+    """
+    # run the code
+    code_locals = {}
+    try:    
+        exec(code, globals(), code_locals)
+    except Exception as e:
+        raise ValueError(f"Error executing code: {str(e)}")
+    user_function = code_locals.get('binary_search')
+    print(user_function)
+
+    if user_function:
+        # Pass the source code to the executor for dynamically created function
+        _, debug_info = executor.execute(user_function, arr, target, source_code=code)
+        print(debug_info)
+    else:
+        raise ValueError("Could not find 'binary_search' function in the provided code")
+    
+    
+    # _, debug_info = executor.execute(binary_search, arr, target)
+    
+    # Convert debug frames to dict for JSON serialization
+    frames = []
+    for frame in debug_info["debug_frames"]:
+        frames.append({
+            "func_name": frame.func_name,
+            "current_line": frame.current_line,
+            "source_lines": frame.source_lines,
+            "start_line": frame.start_line,
+            "variables": frame.variables,
+            "return_value": frame.return_value,
+            "exception": frame.exception
+        })
+        print(frame)
+    
+    # Update debug_info with serializable frames
+    debug_info["debug_frames"] = frames
+    
+    return debug_info
+        
+@app.get("/debug/binary-search", response_model=DebugResponse)
+def debug_binary_search(target: int = 42,
+                        nums: str = "2, 7, 11, 15, 3, 6, 8, 1"):
+    """Debug a binary search algorithm with visualization data"""
+    # Create a sorted array for binary search
+    arr = [int(num) for num in nums.split(",")]
+    print(arr)
+    # Run the debugger on binary search
+
+    
+    
     _, debug_info = executor.execute(binary_search, arr, target)
     
     # Convert debug frames to dict for JSON serialization
@@ -107,6 +173,7 @@ def debug_binary_search(target: int = 42):
             "return_value": frame.return_value,
             "exception": frame.exception
         })
+
     
     # Update debug_info with serializable frames
     debug_info["debug_frames"] = frames
@@ -114,10 +181,10 @@ def debug_binary_search(target: int = 42):
     return debug_info
 
 @app.get("/debug/two-sum", response_model=DebugResponse)
-def debug_two_sum(target: int = 10):
+def debug_two_sum(target: int = 10, 
+                  nums: list[int] = [2, 7, 11, 15, 3, 6, 8, 1]):
     """Debug a two sum algorithm with visualization data"""
-    # Create an array for two sum
-    nums = [2, 7, 11, 15, 3, 6, 8, 1]
+    # Use the input array for two sum
     
     # Run the debugger on two sum
     _, debug_info = executor.execute(two_sum, nums, target)

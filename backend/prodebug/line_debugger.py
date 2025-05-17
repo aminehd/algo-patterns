@@ -100,15 +100,29 @@ class LineDebugger(bdb.Bdb):
             
         self.stop_execution = True
         
-    def run_function(self, func, *args, **kwargs):
+    def run_function(self, func, source_code=None, start_line=1, *args, **kwargs):
         """
         Run a function line by line, capturing execution state at each step.
         Returns the result of the function and captured debug frames.
         """
         try:
             # Get the source code and line number of the function
-            self.source_lines, self.start_line = inspect.getsourcelines(func)
-            self.source_filename = inspect.getfile(func)
+            try:
+                self.source_lines, self.start_line = inspect.getsourcelines(func)
+                self.source_filename = inspect.getfile(func)
+            except (OSError, IOError) as e:
+                print('here amineh si ', e)
+                # Handle dynamically created functions or other cases where inspect fails
+                if source_code is not None:
+                    self.source_lines = source_code.strip().split('\n')
+                    self.start_line = start_line
+                    self.source_filename = "<dynamic>"
+                else:
+                    # If no source code is provided, create a placeholder
+                    self.source_lines = ["<source code not available>"]
+                    self.start_line = 1
+                    self.source_filename = "<dynamic>"
+            
             self.func_name = func.__name__
             
             # Clear previous debug frames
@@ -252,8 +266,12 @@ class DebugExecutor:
         Returns:
             Tuple of (result, debug_info)
         """
+        # Extract source_code from kwargs if provided
+        source_code = kwargs.pop('source_code', None)
+        start_line = kwargs.pop('start_line', 1)  # Default to line 1
+     
         # Run the function with the debugger to get execution info
-        result, debug_info = self.debugger.run_function(func, *args, **kwargs)
+        result, debug_info = self.debugger.run_function(func, source_code, start_line, *args, **kwargs)
         return result, debug_info
 
 
