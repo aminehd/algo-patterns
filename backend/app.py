@@ -2,7 +2,7 @@
 Algorithm debugger API server that executes functions and returns debug frames
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Tuple
@@ -86,48 +86,59 @@ executor = DebugExecutor()
 def read_root():
     return {"message": "Algorithm Debugger API is running"}
 
-@app.get("/debug/any-algorithm", response_model=DebugResponse)
-def debug_any_algorithm(target: int = 42,
-                        nums: str = "2, 7, 11, 15, 3, 6, 8, 1"):
-    """Debug a binary search algorithm with visualization data"""
-    # Create a sorted array for binary search
-    arr = [int(num) for num in nums.split(",")]
-    print(arr)
-    # Run the debugger on binary search
-    code = """
-def binary_search(arr, target):
-    left, right = 0, len(arr) - 1
-    
-    while left <= right:
-        mid = (left + right) // 2
+@app.post("/debug/any-algorithm", response_model=DebugResponse)
+async def debug_any_algorithm(request: Request):
+    """Debug any algorithm with visualization data based on JSON request"""
+    # Parse JSON request body
+    input_args = {}
+    try:
+        req_data = await request.json()
+        # Extract all input arguments from the request
+        input_args = {}
+        for key, value in req_data.items():
+            if key != "code":  # Skip the code parameter
+                input_args[key] = value
+                
+        # Set defaults if not provided
+        #  target = input_args.get("target", 42)
+        #  nums = input_args.get("nums", "2, 7, 11, 15, 3, 6, 8, 1")
+        code = req_data.get("code", None)
         
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
-            
-    return -1
-    """
+        # Create array from nums string
+        # arr = [int(num.strip()) for num in nums.split(",")]
+    except Exception as e:
+        raise ValueError(f"Error parsing request: {str(e)}")
+        
+    # Example API call:
+    # curl -X POST http://localhost:8000/debug/any-algorithm \
+    #   -H "Content-Type: application/json" \
+    #   -d '{"target": 11, "nums": "2, 7, 11, 15, 3, 6, 8, 1", "code": "def binary_search(arr, target)..."}'
+    # Run the debugger on binary search
+
     # run the code
     code_locals = {}
     try:    
         exec(code, globals(), code_locals)
     except Exception as e:
         raise ValueError(f"Error executing code: {str(e)}")
-    user_function = code_locals.get('binary_search')
+    # func name is in first code line after def
+    func_name = code.split('\n')[0].split(' ')[1]
+    func_name = func_name.split('(')[0]
+    
+    user_function = code_locals.get(func_name)
+    
+    print('func_name: ', func_name)
+    # user_function = code_locals.get('binary_search')
     print(user_function)
 
     if user_function:
         # Pass the source code to the executor for dynamically created function
-        _, debug_info = executor.execute(user_function, arr, target, source_code=code)
+        _, debug_info = executor.execute(user_function, *input_args.values(), source_code=code)
         print(debug_info)
     else:
         raise ValueError("Could not find 'binary_search' function in the provided code")
     
     
-    # _, debug_info = executor.execute(binary_search, arr, target)
     
     # Convert debug frames to dict for JSON serialization
     frames = []

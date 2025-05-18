@@ -100,7 +100,7 @@ class LineDebugger(bdb.Bdb):
             
         self.stop_execution = True
         
-    def run_function(self, func, source_code=None, start_line=1, *args, **kwargs):
+    def run_function(self, func, source_code=None, start_line=2, *args, **kwargs):
         """
         Run a function line by line, capturing execution state at each step.
         Returns the result of the function and captured debug frames.
@@ -114,7 +114,8 @@ class LineDebugger(bdb.Bdb):
                 print('here amineh si ', e)
                 # Handle dynamically created functions or other cases where inspect fails
                 if source_code is not None:
-                    self.source_lines = source_code.strip().split('\n')
+                    # Split by newlines and handle different line endings
+                    self.source_lines = source_code.strip().splitlines()
                     self.start_line = start_line
                     self.source_filename = "<dynamic>"
                 else:
