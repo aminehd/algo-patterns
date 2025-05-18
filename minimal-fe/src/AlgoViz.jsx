@@ -1,23 +1,12 @@
 import { useRef, useEffect, useState } from 'react'
 import BinarySearchViz from './BinaryViz'
+import DynamicProgrammingViz from './DynamicProgrammingViz'
 // Import CodeVisualization component to make it available for BinaryViz
 import CodeVisualization from './CodeVisualization'
 import { renderControls } from './Utils';
-const AlgoViz = () => {
+const AlgoViz = ({ algorithmClass, request, code }) => {
   // Sample data for visualization
-  const madeupdata = [
-    { domain: "github.com", count: 1280 },
-    { domain: "medium.com", count: 95 },
-    { domain: "nytimes.com", count: 82 },
-    { domain: "techcrunch.com", count: 78 },
-    { domain: "dev.to", count: 65 },
-    { domain: "wired.com", count: 58 },
-    { domain: "theverge.com", count: 52 },
-    { domain: "arstechnica.com", count: 47 },
-    { domain: "bloomberg.com", count: 43 },
-    { domain: "cnn.com", count: 38 },
-    { domain: "washingtonpost.com", count: 35 },  
-  ]
+
   
   // Animation configuration
   const animationConfig = {
@@ -45,15 +34,30 @@ const AlgoViz = () => {
   const codeDisplayRef = useRef(null);
   
   // Fetch binary search debug data from backend
+    // const response = await fetch(`http://174.138.45.200:83/debug/binary-search?target=${num}`);
   useEffect(() => {
     const fetchDebugData = async () => {
       try {
         setLoading(true);
-        // This will work so if the proxy not worked and broke, use this 
-        // const response = await fetch('http://174.138.45.200:83/debug/binary-search');
-        // in the vite config, we have a proxy to the backend:83 for debug path, in the proxy manager we have 
-        // a /debug path to rout to 83
-        const response = await fetch('/debug/binary-search');
+        
+        
+        // const response = await fetch(`/debug/binary-search?nums=${encodedNums}&target=${39}`);
+        // const response = await fetch(`/debug/any-algorithm?nums=${encodedNums}&target=${39}`); 
+        // Example API call:
+        // curl -X POST http://localhost:8000/debug/any-algorithm \
+        //   -H "Content-Type: application/json" \
+        //   -d '{"target": 11, "nums": "2, 7, 11, 15, 3, 6, 8, 1", "code": "def binary_search(arr, target)..."}'
+
+    
+        const response = await fetch(`/debug/any-algorithm`, { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(request)
+        });
+
+        
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
         }
@@ -89,6 +93,10 @@ const AlgoViz = () => {
         setIsAnimating(false);
       }, animationConfig.duration);
     }
+  };
+
+  const handleRestartFrame = () => {
+    setCurrentFrameIndex(0);
   };
 
   // Auto-play functionality
@@ -139,9 +147,20 @@ const AlgoViz = () => {
           <p>Frame: {currentFrameIndex + 1} of {debugData.debug_frames.length}</p>
         </div>
 
-      <CodeVisualization frame={frame} />
-      {renderControls(handlePrevFrame, handleNextFrame, isAutoPlaying, currentFrameIndex, debugData, isAnimating, toggleAutoPlay)}
-      <BinarySearchViz frame={frame} />
+      <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div style={{ flex: '1 1 50%', width: '50%', maxWidth: '50%' }}>
+          <CodeVisualization frame={frame} />
+        </div>
+        <div style={{ flex: '1 1 50%', width: '50%', maxWidth: '50%' }}>
+          {algorithmClass === 'dynamic-programming' ? (
+            <DynamicProgrammingViz frame={frame} />
+          ) : (
+            <BinarySearchViz frame={frame}  />
+          )}
+        </div>
+      </div>
+      {renderControls(handlePrevFrame, handleNextFrame, isAutoPlaying, currentFrameIndex, debugData, isAnimating, toggleAutoPlay, handleRestartFrame)}
+
     </div>
   )
 }

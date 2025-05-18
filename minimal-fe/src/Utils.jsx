@@ -33,7 +33,7 @@ const renderPointerInfo = (left, right, mid, target) => {
   };
 
   const renderControls = (handlePrevFrame, handleNextFrame, isAutoPlaying, 
-    currentFrameIndex, debugData, isAnimating, toggleAutoPlay) => {
+    currentFrameIndex, debugData, isAnimating, toggleAutoPlay, handleRestartFrame) => {
     return (
       <div className="controls" style={{ 
         backgroundColor: '#0a0a0a', 
@@ -88,6 +88,20 @@ const renderPointerInfo = (left, right, mid, target) => {
           }}
         >
           NEXT_FRAME »
+        </button>
+        <button 
+          onClick={handleRestartFrame}
+          style={{ 
+            backgroundColor: '#000', 
+            color: '#33ff33', 
+            border: '1px solid #33ff33', 
+            margin: '0 5px', 
+            padding: '8px 15px', 
+            fontFamily: 'monospace', 
+            cursor: 'pointer'
+          }}
+        >
+          [ RESTART ]
         </button>
       </div>
     );
